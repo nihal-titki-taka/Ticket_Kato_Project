@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticket Kato — Online Train Booking</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=Space+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav>
+      <div class="nav-brand" onclick="showPage('home')">Ticket Kato</div>
+      <ul class="nav-links" id="main-nav">
+        <li>
+          <a onclick="showPage('home')" id="nav-home" class="active">Home</a>
+        </li>
+        <li><a onclick="showPage('results')" id="nav-results">Search</a></li>
+        <li>
+          <a onclick="requireAuth(() => showPage('tickets'))" id="nav-tickets"
+            >My Tickets</a
+          >
+        </li>
+      </ul>
+      <div class="nav-right">
+        <button
+          class="theme-btn"
+          id="theme-btn"
+          onclick="toggleTheme()"
+          title="Toggle theme"
+        >
+          🌙
+        </button>
+        <div id="nav-auth-area">
+          <button
+            class="btn btn-outline btn-sm"
+            onclick="openModal('modal-auth')"
+          >
+            Login / Register
+          </button>
+        </div>
+        <button class="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="mobile-nav" id="mobile-nav">
+      <a
+        onclick="
+          showPage('home');
+          closeMobileNav();
+        "
+        >🏠 Home</a
+      >
+      <a
+        onclick="
+          showPage('results');
+          closeMobileNav();
+        "
+        >🔍 Search Trains</a
+      >
+      <a
+        onclick="
+          requireAuth(() => showPage('tickets'));
+          closeMobileNav();
+        "
+        >🎫 My Tickets</a
+      >
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <div id="page-home" class="page active">
+      <section class="hero">
+        <div class="hero-bg"></div>
+        <svg
+          class="track-deco"
+          viewBox="0 0 1200 100"
+          preserveAspectRatio="none"
+        >
+          <line
+            x1="0"
+            y1="28"
+            x2="1200"
+            y2="28"
+            stroke="#f59e0b"
+            stroke-width="2"
+          />
+          <line
+            x1="0"
+            y1="72"
+            x2="1200"
+            y2="72"
+            stroke="#f59e0b"
+            stroke-width="2"
+          />
+          <g
+            stroke="#f59e0b"
+            stroke-width="1"
+            stroke-dasharray="7,11"
+            opacity=".7"
+          >
+            <line x1="60" y1="0" x2="60" y2="100" />
+            <line x1="160" y1="0" x2="160" y2="100" />
+            <line x1="260" y1="0" x2="260" y2="100" />
+            <line x1="360" y1="0" x2="360" y2="100" />
+            <line x1="460" y1="0" x2="460" y2="100" />
+            <line x1="560" y1="0" x2="560" y2="100" />
+            <line x1="660" y1="0" x2="660" y2="100" />
+            <line x1="760" y1="0" x2="760" y2="100" />
+            <line x1="860" y1="0" x2="860" y2="100" />
+            <line x1="960" y1="0" x2="960" y2="100" />
+            <line x1="1060" y1="0" x2="1060" y2="100" />
+            <line x1="1160" y1="0" x2="1160" y2="100" />
+          </g>
+        </svg>
+
+        <div style="position: relative; width: 100%; max-width: 760px">
+          <h1>Bangladesh's <em>Fastest</em><br />Train Booking System</h1>
+          <p>Search, book & manage your railway journey across Bangladesh</p>
+
+          <div class="search-card">
+            <div class="search-row">
+              <div class="form-group">
+                <label class="form-label">From</label>
+                <select class="form-control" id="search-from">
+                  <option value="">Select city</option>
+                  <option>Dhaka</option>
+                  <option>Chittagong</option>
+                  <option>Sylhet</option>
+                  <option>Rajshahi</option>
+                  <option>Khulna</option>
+                  <option>Comilla</option>
+                  <option>Mymensingh</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">To</label>
+                <select class="form-control" id="search-to">
+                  <option value="">Select city</option>
+                  <option>Dhaka</option>
+                  <option>Chittagong</option>
+                  <option>Sylhet</option>
+                  <option>Rajshahi</option>
+                  <option>Khulna</option>
+                  <option>Comilla</option>
+                  <option>Mymensingh</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-control" id="search-date" />
+              </div>
+              <button class="btn btn-primary" onclick="doSearch()">
+                🔍 Search
+              </button>
+            </div>
+            <div id="search-error" class="form-error"></div>
+          </div>
+
+          <div class="stats-bar">
+            <div class="stat-card">
+              <div class="stat-num" id="stat-trains">28</div>
+              <div class="stat-label">Active Trains</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">7</div>
+              <div class="stat-label">Cities Connected</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-booked">0</div>
+              <div class="stat-label">Tickets Booked</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="page-results" class="page">
+      <div class="section container fade-in">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Train <span>Results</span></h2>
+            <p
+              id="results-subtitle"
+              style="
+                color: var(--muted);
+                font-size: 0.88rem;
+                margin-top: 0.25rem;
+              "
+            ></p>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('home')">
+            ← Back
+          </button>
+        </div>
+        <div class="weather-bar" id="weather-bar">
+          <span class="loader"></span>&nbsp; Loading destination weather...
+        </div>
+        <div class="train-grid" id="train-list"></div>
+      </div>
+    </div>
+
+    <div id="page-tickets" class="page">
+      <div class="section container fade-in">
+        <div class="section-header">
+          <h2 class="section-title">My <span>Tickets</span></h2>
+          <button class="btn btn-outline btn-sm" onclick="showPage('home')">
+            ← Home
+          </button>
+        </div>
+        <div class="ticket-grid" id="ticket-list"></div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-brand">Ticket Kato</div>
+      <ul class="footer-links">
+        <li><a onclick="showPage('home')">Home</a></li>
+        <li><a onclick="showPage('results')">Search Trains</a></li>
+        <li>
+          <a onclick="requireAuth(() => showPage('tickets'))">My Tickets</a>
+        </li>
+        <li><a onclick="openModal('modal-auth')">Login</a></li>
+        <li>
+          <a onclick="alert('📧 support@railxpressbd.com\n📞 16516')"
+            >Contact</a
+          >
+        </li>
+      </ul>
+      <p class="footer-text">© 2025 Ticket Kato</p>
+    </footer>
+
+    <div
+      class="modal-overlay"
+      id="modal-auth"
+      onclick="overlayClick(event, 'modal-auth')"
+    >
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title" id="auth-title">Welcome Back</h3>
+          <button class="modal-close" onclick="closeModal('modal-auth')">
+            ✕
+          </button>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchAuthTab('login')">
+            Login
+          </button>
+          <button class="tab-btn" onclick="switchAuthTab('register')">
+            Register
+          </button>
+        </div>
+
+        <div id="tab-login">
+          <div class="form-group" style="margin-bottom: 0.9rem">
+            <label class="form-label">Email Address</label>
+            <input
+              type="email"
+              class="form-control"
+              id="login-email"
+              placeholder="you@example.com"
+              onkeydown="if (event.key === 'Enter') doLogin();"
+            />
+            <span class="form-error" id="err-login-email"></span>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="login-pass"
+              placeholder="••••••••"
+              onkeydown="if (event.key === 'Enter') doLogin();"
+            />
+            <span class="form-error" id="err-login-pass"></span>
+          </div>
+          <label
+            class="check-item"
+            style="margin: 0.7rem 0; cursor: pointer; display: inline-flex"
+          >
+            <input
+              type="checkbox"
+              id="show-pass"
+              onchange="
+                document.getElementById('login-pass').type = this.checked
+                  ? 'text'
+                  : 'password'
+              "
+            />
+            <span style="font-size: 0.85rem">Show password</span>
+          </label>
+          <div id="login-alert"></div>
+          <button
+            class="btn btn-primary"
+            onclick="doLogin()"
+            style="width: 100%; justify-content: center; margin-top: 0.75rem"
+          >
+            Login
+          </button>
+          <p
+            style="
+              text-align: center;
+              margin-top: 0.9rem;
+              font-size: 0.83rem;
+              color: var(--muted);
+            "
+          >
+            No account?
+            <a
+              href="#"
+              onclick="switchAuthTab('register')"
+              style="color: var(--accent)"
+              >Register here</a
+            >
+          </p>
+        </div>
+
+        <div id="tab-register" style="display: none">
+          <div class="form-group" style="margin-bottom: 0.75rem">
+            <label class="form-label">Full Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="reg-name"
+              placeholder=""
+            />
+            <span class="form-error" id="err-reg-name"></span>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="reg-email"
+              placeholder="you@example.com"
+            />
+            <span class="form-error" id="err-reg-email"></span>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem">
+            <label class="form-label">Phone Number</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="reg-phone"
+              placeholder="01XXXXXXXXX"
+            />
+            <span class="form-error" id="err-reg-phone"></span>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem">
+            <label class="form-label">Age</label>
+            <input
+              type="number"
+              class="form-control"
+              id="reg-age"
+              placeholder=""
+              min="5"
+              max="120"
+            />
+            <span class="form-error" id="err-reg-age"></span>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="reg-pass"
+              placeholder="Min 6 characters"
+            />
+            <span class="form-error" id="err-reg-pass"></span>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem">
+            <label class="form-label">Confirm Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="reg-pass2"
+              placeholder="Repeat password"
+            />
+            <span class="form-error" id="err-reg-pass2"></span>
+          </div>
+          <div id="reg-alert"></div>
+          <button
+            class="btn btn-primary"
+            onclick="doRegister()"
+            style="width: 100%; justify-content: center; margin-top: 0.75rem"
+          >
+            Create Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal-overlay"
+      id="modal-booking"
+      onclick="overlayClick(event, 'modal-booking')"
+    >
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Book Ticket</h3>
+          <button class="modal-close" onclick="closeModal('modal-booking')">
+            ✕
+          </button>
+        </div>
+
+        <div
+          id="booking-train-info"
+          class="booking-summary"
+          style="margin-bottom: 1.2rem"
+        ></div>
+
+        <hr class="divider" />
+        <p class="form-label" style="margin-bottom: 0.45rem">
+          Select Seat Class
+        </p>
+        <div class="radio-group" id="class-radio"></div>
+
+        <hr class="divider" />
+        <p class="form-label" style="margin-bottom: 0.45rem">Preferences</p>
+        <div class="check-group">
+          <label class="check-item">
+            <input type="checkbox" id="pref-window" />
+            <span style="font-size: 0.88rem">Window seat preferred</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="pref-food" onchange="updateTotal()" />
+            <span style="font-size: 0.88rem">Add meal package (+৳150)</span>
+          </label>
+        </div>
+
+        <hr class="divider" />
+        <p class="form-label" style="margin-bottom: 0.45rem">Payment Method</p>
+        <div class="pay-tabs">
+          <div class="pay-tab active" onclick="switchPayTab('card')">
+            💳 Card
+          </div>
+          <div class="pay-tab" onclick="switchPayTab('bkash')">📱 bKash</div>
+          <div class="pay-tab" onclick="switchPayTab('nagad')">💸 Nagad</div>
+        </div>
+
+        <div id="pay-card" class="pay-fields active">
+          <div class="form-group" style="margin-bottom: 0.75rem">
+            <label class="form-label">Card Number</label>
+            <input
+              type="text"
+              class="form-control"
+              id="card-num"
+              placeholder="XXXX XXXX XXXX XXXX"
+              maxlength="19"
+            />
+            <span class="form-error" id="err-card"></span>
+          </div>
+          <div
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem"
+          >
+            <div class="form-group">
+              <label class="form-label">Expiry (MM/YY)</label>
+              <input
+                type="text"
+                class="form-control"
+                id="card-expiry"
+                placeholder="MM/YY"
+                maxlength="5"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">CVV</label>
+              <input
+                type="password"
+                class="form-control"
+                id="card-cvv"
+                placeholder="•••"
+                maxlength="3"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div id="pay-bkash" class="pay-fields">
+          <div class="form-group">
+            <label class="form-label">bKash Number</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="bkash-num"
+              placeholder="01XXXXXXXXX"
+            />
+            <span class="form-error" id="err-bkash"></span>
+          </div>
+        </div>
+
+        <div id="pay-nagad" class="pay-fields">
+          <div class="form-group">
+            <label class="form-label">Nagad Number</label>
+            <input
+              type="tel"
+              class="form-control"
+              id="nagad-num"
+              placeholder="01XXXXXXXXX"
+            />
+            <span class="form-error" id="err-nagad"></span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <div id="booking-total" class="booking-summary"></div>
+        <div id="booking-alert"></div>
+        <button
+          class="btn btn-primary"
+          onclick="confirmBooking()"
+          style="width: 100%; justify-content: center; margin-top: 1rem"
+        >
+          ✓ Confirm Booking
+        </button>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
